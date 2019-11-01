@@ -6,8 +6,14 @@ import (
 	"github.com/alexodorico/todo/db"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/render"
 	_ "github.com/lib/pq"
 )
+
+type todo struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
 
 func main() {
 	db.InitDB()
@@ -34,7 +40,23 @@ func main() {
 }
 
 func listTodos(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("listTododvvtestvs"))
+	var todos []todo
+
+	rows, err := db.Conn.Query("SELECT * FROM todos")
+	if err != nil {
+		panic(err)
+	}
+
+	for rows.Next() {
+		var item todo
+		err = rows.Scan(&item.ID, &item.Name)
+		if err != nil {
+			panic(err)
+		}
+		todos = append(todos, item)
+	}
+
+	render.JSON(w, r, todos)
 }
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
