@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/alexodorico/todo/db"
@@ -10,20 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "db"
-	port     = 5432
-	user     = "postgres"
-	password = "postgres"
-	name     = "postgres"
-)
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, name)
-
-	db.InitDB(psqlInfo)
+	db.InitDB()
 
 	r := chi.NewRouter()
 
