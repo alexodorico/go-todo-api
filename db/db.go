@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 
+	// For PostgreSQL connection
 	_ "github.com/lib/pq"
 )
 
+// Conn exposes global variable referencing the database connection
 var Conn *sql.DB
 
 const (
