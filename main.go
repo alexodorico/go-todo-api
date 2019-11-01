@@ -1,23 +1,36 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/alexodorico/todo/db"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "db"
+	port     = 5432
+	user     = "postgres"
+	password = "postgres"
+	name     = "postgres"
 )
 
 func main() {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, name)
+
+	db.InitDB(psqlInfo)
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
-	})
 
 	r.Route("/todos", func(r chi.Router) {
 		r.Get("/", listTodos)
@@ -34,7 +47,7 @@ func main() {
 }
 
 func listTodos(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("listTodos"))
+	w.Write([]byte("listTododvvtestvs"))
 }
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
