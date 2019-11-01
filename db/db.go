@@ -26,12 +26,13 @@ func InitDB() {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, name)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	var err error
+	Conn, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = Conn.Ping(); err != nil {
 		log.Panic(err)
 	}
 }
