@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/alexodorico/todo/db"
@@ -11,8 +12,7 @@ import (
 )
 
 type todo struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	Item string `json:"item"`
 }
 
 func main() {
@@ -40,7 +40,7 @@ func main() {
 }
 
 func listTodos(w http.ResponseWriter, r *http.Request) {
-	var todos []todo
+	var ts []todo
 
 	rows, err := db.Conn.Query("SELECT * FROM todos")
 	if err != nil {
@@ -48,19 +48,34 @@ func listTodos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for rows.Next() {
-		var item todo
-		err = rows.Scan(&item.ID, &item.Name)
+		var t todo
+
+		err = rows.Scan(&t.Item)
 		if err != nil {
 			panic(err)
 		}
-		todos = append(todos, item)
+
+		ts = append(ts, t)
 	}
 
-	render.JSON(w, r, todos)
+	render.JSON(w, r, ts)
 }
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("createTodo"))
+	var t todo
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+
+	stmt := "INSERT INTO todos (item) VALUES ($1)"
+	_, err = db.Conn.Exec(stmt, t.Item)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func getTodo(w http.ResponseWriter, r *http.Request) {
