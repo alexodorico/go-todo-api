@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/alexodorico/todo/db"
@@ -51,7 +53,7 @@ func listTodos(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var t todo
 
-		err = rows.Scan(&t.Item, &t.ID)
+		err = rows.Scan(&t.ID, &t.Item)
 		if err != nil {
 			panic(err)
 		}
@@ -81,7 +83,17 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 
 func getTodo(w http.ResponseWriter, r *http.Request) {
 	todoID := chi.URLParam(r, "todoID")
-	w.Write([]byte(todoID))
+
+	var t todo
+	row := db.Conn.QueryRow("SELECT * FROM todos WHERE id = $1", todoID)
+	switch err := row.Scan(&t.ID, &t.Item); err {
+	case sql.ErrNoRows:
+		fmt.Println("No rows")
+	case nil:
+		render.JSON(w, r, t)
+	default:
+		panic(err)
+	}
 }
 
 func updateTodo(w http.ResponseWriter, r *http.Request) {
