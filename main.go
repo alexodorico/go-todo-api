@@ -12,6 +12,7 @@ import (
 )
 
 type todo struct {
+	ID   string `json:"id"`
 	Item string `json:"item"`
 }
 
@@ -50,7 +51,7 @@ func listTodos(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var t todo
 
-		err = rows.Scan(&t.Item)
+		err = rows.Scan(&t.Item, &t.ID)
 		if err != nil {
 			panic(err)
 		}
