@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/alexodorico/todo/db"
@@ -44,7 +43,6 @@ func main() {
 
 func listTodos(w http.ResponseWriter, r *http.Request) {
 	var ts []todo
-
 	rows, err := db.Conn.Query("SELECT * FROM todos")
 	if err != nil {
 		panic(err)
@@ -52,12 +50,10 @@ func listTodos(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var t todo
-
 		err = rows.Scan(&t.ID, &t.Item)
 		if err != nil {
 			panic(err)
 		}
-
 		ts = append(ts, t)
 	}
 
@@ -86,7 +82,7 @@ func getTodo(w http.ResponseWriter, r *http.Request) {
 	row := db.Conn.QueryRow("SELECT * FROM todos WHERE id = $1", id)
 	switch err := row.Scan(&t.ID, &t.Item); err {
 	case sql.ErrNoRows:
-		fmt.Println("No rows")
+		w.WriteHeader(http.StatusNotFound)
 	case nil:
 		render.JSON(w, r, t)
 	default:
