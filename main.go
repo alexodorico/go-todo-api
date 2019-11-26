@@ -32,7 +32,7 @@ func main() {
 		r.Get("/", listTodos)
 		r.Post("/", createTodo)
 
-		r.Route("/{todoID}", func(r chi.Router) {
+		r.Route("/{id}", func(r chi.Router) {
 			r.Get("/", getTodo)
 			r.Put("/", updateTodo)
 			r.Delete("/", deleteTodo)
@@ -66,8 +66,7 @@ func listTodos(w http.ResponseWriter, r *http.Request) {
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
 	var t todo
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&t)
+	err := json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
 		panic(err)
 	}
@@ -82,10 +81,9 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTodo(w http.ResponseWriter, r *http.Request) {
-	todoID := chi.URLParam(r, "todoID")
-
 	var t todo
-	row := db.Conn.QueryRow("SELECT * FROM todos WHERE id = $1", todoID)
+	id := chi.URLParam(r, "id")
+	row := db.Conn.QueryRow("SELECT * FROM todos WHERE id = $1", id)
 	switch err := row.Scan(&t.ID, &t.Item); err {
 	case sql.ErrNoRows:
 		fmt.Println("No rows")
@@ -97,11 +95,29 @@ func getTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTodo(w http.ResponseWriter, r *http.Request) {
-	todoID := chi.URLParam(r, "todoID")
-	w.Write([]byte(todoID))
+	var t todo
+	id := chi.URLParam(r, "id")
+	err := json.NewDecoder(r.Body).Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+
+	stmt := "UPDATE todos SET item = $1 WHERE id = $2"
+	_, err = db.Conn.Exec(stmt, t.Item, id)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func deleteTodo(w http.ResponseWriter, r *http.Request) {
-	todoID := chi.URLParam(r, "todoID")
-	w.Write([]byte(todoID))
+	id := chi.URLParam(r, "id")
+	stmt := "DELETE FROM todos WHERE id = $1"
+	_, err := db.Conn.Exec(stmt, id)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
